@@ -3,6 +3,8 @@
  * Code written by Aftersol (c) 2021
  */
 
+#define ENABLE_SLEEP 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -10,7 +12,9 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "usleep.h"
+#ifdef ENABLE_SLEEP
+#include "usleep.h" // For putting a program to sleep so we can see the results
+#endif
 
 int sign(double x)
 {
@@ -22,7 +26,7 @@ double midpoint(double a, double b)
     return (a+b)/2.0;
 }
 
-double rootFind(double x)
+double rootFind(double x) // Replace this function with your own function for finding root for different functions
 {
     return log(x) + (x*x) - 3;
 }
@@ -35,26 +39,26 @@ bool bisection(double (*function)(double), double a, double b, double tolerance,
     if (sign(a) != sign(b) || n <= 0) // does it return a negative number
         return false;
 
-    unsigned int iterations = 0u;
-    double c;
+    unsigned int iterations = 0u; // Current iterations
+    double mid; // Midpoint value
 
-    while (iterations < n) 
+    while (iterations < n) // Keep looping through iterations until a solution is found
     {
-        c = midpoint(a,b);
+        mid = midpoint(a,b);
 
-        if (function(c) == 0 || fabs(function(c)) < tolerance)
+        if (function(mid) == 0 || fabs(function(mid)) < tolerance) // solution for a root is found
             break;
 
         iterations++;
 
-        if (sign(function(a)) == sign(function(c)))
-            a = c;
+        if (sign(function(a)) == sign(function(mid))) // Has the signs changed yet
+            a = mid;
 
         else
-            b = c; 
+            b = mid; 
     } 
 
-    *result = c;
+    *result = mid; // Returns the result of the bisection function
     return true;
 }
 
@@ -69,14 +73,14 @@ bool strn_isDigit(const char* str, size_t len)
 
     for (pos = 0; pos < len; pos++)
     {
-        if (str[pos] == '\0' || str[pos] == '\n')
+        if (str[pos] == '\0' || str[pos] == '\n') // Stop when the terminating character is reached
             break;
 
-        if ((str[pos] >= '0' && str[pos] <= '9'))
+        if ((str[pos] >= '0' && str[pos] <= '9')) // Only accepts numerical values
         {
             continue;
         }
-        else if (str[pos] == '.')
+        else if (str[pos] == '.') // decimal character
         {
             if (hasADot || hasAnE)
             {
@@ -86,7 +90,7 @@ bool strn_isDigit(const char* str, size_t len)
             else
                 hasADot = true;
         }
-        else if (str[pos] == 'e')
+        else if (str[pos] == 'e' || str[pos] == 'E') // exponent character
         {
             if (hasAnE)
             {
@@ -99,7 +103,7 @@ bool strn_isDigit(const char* str, size_t len)
                 hasAnE = true;
             }
         }
-        else if (str[pos] == '-')
+        else if (str[pos] == '-') // Negative character
         {
             if (hasA_Negative || pos > 0)
             {
@@ -123,16 +127,16 @@ bool strn_isDigit(const char* str, size_t len)
 
 int main()
 {
-    char* buffer = (char*)malloc(1025 * sizeof(char)); // 1024 + 1 char space for NULL terminator
+    char* buffer = (char*)malloc(1025 * sizeof(char)); // Allocate 1024 char elements plus an extra character for the NULL terminator
     if (!buffer)
         return -1;
 
     double a, b, tolerance;
     int iterations;
 
-    bool success[5]; // sucessful input?
+    bool success[5]; // Sucessful input?
 
-    do
+    do // Makes sure this program is run at least once
     {
         success[0] = false, success[1] = false, success[2] = false, success[3] = false, success[4] = false;
         do
@@ -142,7 +146,7 @@ int main()
             success[0] = (fgets(buffer, 1024, stdin) != NULL);
             if (strn_isDigit(buffer, 1024))
             {
-                a = atof(buffer);
+                a = atof(buffer); // Convert a string into a float
                 success[0] = true;
             }
             else
@@ -203,12 +207,13 @@ int main()
             success[4] = true;
         }
         else
-        {
             printf("The first and second must be a number the opposite signs of each other returned from a function or the number of iterations must be positive.\n");
-        }
-    } while (success[4] == false);
 
+    } while (success[4] == false); // Automatically tries again if the bisection algorithm fails to return a root
+
+#ifdef ENABLE_SLEEP
     sleep_ms(5000);
+#endif
 
     return 0;
 }

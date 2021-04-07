@@ -1,0 +1,8 @@
+# Development folders
+/build
+/.vscode
+
+# Executable folders
+*.exe
+*.com
+*.elf
